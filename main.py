@@ -146,10 +146,8 @@ def bst_insert(node, parent, key):
     if node is None:
         return "insert", Node(key, parent)
     if key < node.key:
-        # node.size += 1
         case, node.left_child = bst_insert(node.left_child, node, key)
     elif key > node.key:
-        # node.size += 1
         case, node.right_child = bst_insert(node.right_child, node, key)
     else:
         case = "no_insert"
