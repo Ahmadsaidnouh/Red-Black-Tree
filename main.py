@@ -1,6 +1,3 @@
-import queue
-
-
 class Node:
     def __init__(self, key, parent):
         self.key = key
@@ -121,48 +118,30 @@ def RB_fixup(root, z):
     return root
 
 
-# scans the tree after normal BST-insertions using breadth first technique to check that no red node has its parent's
-# color red. if the mentioned case occurs, it will directly pass this node to RB_fixup to fix the violated property
-def breadth_first_traversal_to_fix(root, node):
-    q = queue.LifoQueue()
-    if node is not None:
-        q.put(node)
-        while not q.empty():
-            n = q.get()
-            if n.color == "red" and n.left_child is not None and n.left_child.color == "red":
-                return RB_fixup(root, n.left_child)
-            elif n.color == "red" and n.right_child is not None and n.right_child.color == "red":
-                return RB_fixup(root, n.right_child)
-
-            if n.left_child is not None:
-                q.put(n.left_child)
-            if n.right_child is not None:
-                q.put(n.right_child)
-        return root
-
-
 # normal BST-insertion
 def bst_insert(node, parent, key):
     if node is None:
-        return "insert", Node(key, parent)
+        insert_node = Node(key, parent)
+        return "insert", insert_node, insert_node
     if key < node.key:
-        case, node.left_child = bst_insert(node.left_child, node, key)
+        case, node.left_child, inserted_node = bst_insert(node.left_child, node, key)
     elif key > node.key:
-        case, node.right_child = bst_insert(node.right_child, node, key)
+        case, node.right_child, inserted_node = bst_insert(node.right_child, node, key)
     else:
         case = "no_insert"
 
     if case == "insert":
         node.size += 1
-        return "insert", node
+        return "insert", node, inserted_node
     else:
-        return "no_insert", node
+        return "no_insert", node, None
 
 
 # our main insert function that the user can call
 def insert_fix(root, node, key):
-    bst_insert(node, None, key)
-    root = breadth_first_traversal_to_fix(root, root)
+    case, head, inserted_node = bst_insert(node, None, key)
+    if inserted_node is not None:
+        root = RB_fixup(root, inserted_node)
     return root
 
 
@@ -203,7 +182,7 @@ RB_root = init_RB_tree(insert_key)
 
 while True:
     print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOperations Menu: ")
-    print("1) Search\n2) Insert\n3) Print Tree Height\n4) Print Tree Size\n5) Print inorder traversal\n6) Exit")
+    print("1) Search\n2) Insert\n3) Print Tree Height\n4) Print Tree Size\n5) Print inorder\n6) Exit")
     operation = input("Enter Operation number: ")
     print("")
 

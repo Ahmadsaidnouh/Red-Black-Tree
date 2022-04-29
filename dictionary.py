@@ -1,4 +1,6 @@
-import queue
+import colorama
+from colorama import Fore
+colorama.init(autoreset=True)
 
 
 class Node:
@@ -121,31 +123,11 @@ def RB_fixup(root, z):
     return root
 
 
-# scans the tree after normal BST-insertions using breadth first technique to check that no red node has its parent's
-# color red. if the mentioned case occurs, it will directly pass this node to RB_fixup to fix the violated property
-def breadth_first_traversal_to_fix(root, node):
-    q = queue.Queue()
-    if node is not None:
-        q.put(node)
-        while not q.empty():
-            n = q.get()
-            if n.color == "red" and n.left_child is not None and n.left_child.color == "red":
-                return RB_fixup(root, n.left_child)
-            elif n.color == "red" and n.right_child is not None and n.right_child.color == "red":
-                return RB_fixup(root, n.right_child)
-
-            if n.left_child is not None:
-                q.put(n.left_child)
-            if n.right_child is not None:
-                q.put(n.right_child)
-        return root
-
-
 # normal BST-insertion
 def bst_insert(node, parent, key):
     if node is None:
-        insert_node = Node(key, parent)
-        return "insert", insert_node, insert_node
+        inserted_node = Node(key, parent)
+        return "insert", inserted_node, inserted_node
     if key < node.key:
         case, node.left_child, inserted_node = bst_insert(node.left_child, node, key)
     elif key > node.key:
@@ -165,7 +147,6 @@ def insert_fix(root, node, key):
     case, head, inserted_node = bst_insert(node, None, key)
     if inserted_node is not None:
         root = RB_fixup(root, inserted_node)
-    #     print(c.key, c.parent.key, c.color)
     return root
 
 
@@ -201,48 +182,58 @@ def RB_tree_size(root):
     return root.size
 
 
-insert_key = int(input("Enter the root key: "))
-RB_root = init_RB_tree(insert_key)
+# loads the file into a RB-tree and returns its root when finish
+def load_dictionary():
+    print("Loading dictionary.....")
+    root = None
+    with open('EN-US-Dictionary.txt', 'r') as f:
+        new_root = init_RB_tree(f.readline().strip())
+        for line in f:
+            new_root = insert_fix(new_root, new_root, line.strip().lower())
+        root = new_root
+    print("Dictionary loaded successfully")
+    return root
+
+
+# calling load_dictionary to initialize and load the tree
+RB_root = load_dictionary()
 
 while True:
     print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOperations Menu: ")
-    print("1) Search\n2) Insert\n3) Print Tree Height\n4) Print Tree Size\n5) Print inorder\n6) Exit")
+    print("1) Print Tree Size and Height\n2) Insert\n3) Look-Up\n4) Print Inorder\n5) Exit")
     operation = input("Enter Operation number: ")
     print("")
 
     if operation == "1":
-        try:
-            insert_key = int(input("Search for: "))
-            wanted_node = search_RB_tree(RB_root, insert_key)
-            if wanted_node is None:
-                print("--->" + str(insert_key) + " is not in the tree!!")
-            else:
-                print("--->Found:\n\tKey:", wanted_node.key, "\n\tColor:", wanted_node.color)
-        except ValueError:
-            # Handle the exception
-            print("Invalid input!! Input must be an integer")
+        print(Fore.LIGHTBLUE_EX + "Tree size: " + str(RB_tree_size(RB_root)))
+        print(Fore.LIGHTBLUE_EX + "Tree height: " + str(RB_tree_height(RB_root)))
     elif operation == "2":
         print("******Insert \"*+*\" if want to exist insert operation******")
         while True:
-            insert_key = input("Insert:")
+            insert_key = input("Insert:").lower()
             if insert_key == "*+*":
                 break
             else:
-                try:
-                    RB_root = insert_fix(RB_root, RB_root, int(insert_key))
-                except ValueError:
-                    # Handle the exception
-                    print("Invalid input!! Input must be an integer")
+                RB_root = insert_fix(RB_root, RB_root, insert_key)
+        print(Fore.LIGHTBLUE_EX + "Tree size: " + str(RB_tree_size(RB_root)))
+        print(Fore.LIGHTBLUE_EX + "Tree height: " + str(RB_tree_height(RB_root)))
     elif operation == "3":
-        print("Tree height:", RB_tree_height(RB_root))
+        insert_key = input("Search for: ").lower()
+        wanted_node = search_RB_tree(RB_root, insert_key)
+        if wanted_node is None:
+            print("--->" + insert_key + " is not in the tree!!")
+        else:
+            print("--->Found:\n\tKey:", wanted_node.key, "\n\tColor:", wanted_node.color)
+        print(Fore.LIGHTBLUE_EX + "Tree size: " + str(RB_tree_size(RB_root)))
+        print(Fore.LIGHTBLUE_EX + "Tree height: " + str(RB_tree_height(RB_root)))
     elif operation == "4":
-        print("Tree size:", RB_tree_size(RB_root))
-    elif operation == "5":
         print("~~~~~~~~~~ Root =", RB_root.key, "~~~~~~~~~~")
         inorder_traversal(RB_root)
-    elif operation == "6":
+        print(Fore.LIGHTBLUE_EX + "Tree size: " + str(RB_tree_size(RB_root)))
+        print(Fore.LIGHTBLUE_EX + "Tree height: " + str(RB_tree_height(RB_root)))
+    elif operation == "5":
         break
     else:
-        print("Invalid input!!", operation, "is out of range!!")
+        print(Fore.LIGHTRED_EX + "Invalid input!! " + operation + " is out of range!!")
 
     input("\nPress enter to return to Operations Menu...")
